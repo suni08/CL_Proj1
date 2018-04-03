@@ -1,0 +1,65 @@
+#Convert all capitalized letters to small letter
+tr ’A-Z’ ’a-z’ < DA.txt > temp0.txt
+
+#Convert all initially present @ to correct texts
+sed -e 's/i@/i?/g' -e 's/m@ch@/mache/g' -e 's/gr@ce:/grace/g' temp0.txt > temp1.txt
+
+#convert all end of sentence to @
+sed 's/[.!?]/ @ /g' temp1.txt > temp2.txt
+
+#Introduce @ infront of the very first word of the text file too
+sed -i '' '1s/^/@ /' temp2.txt
+
+#convert all contractions
+sed -e "s/'d/ would/g" -e "s/'m/ am/g" -e "s/'l/ will/g" -e "s/'ll/ will/g" -e "s/'s/ is/g" -e "s/'re/ are/g" -e "s/'ve/ have/g" -e "s/n't/ not/g" -e "s/'em/ them/g" -e "s/'cos/because/g" temp2.txt > temp3.txt
+
+#Convert % to percentage and remove all other punctuations except @
+sed -e 's/%/a percentage/g' -e 's/@/M/g;s/\([[:punct:]]\)//g;s/M/@/g' temp3.txt > temp4.txt
+
+#Remove all more than one occurrence of spaces
+sed -E 's/ [ ]+//g' temp4.txt > temp5.txt
+
+#Remove all more than one occurrence of @
+sed -E 's/@[@]+/@/g' temp5.txt > temp6.txt
+
+#Few contractions to be made right
+sed -e 's/ca not/can not/g' -e 's/wo not/will not/g' -e 's/sha not/shall not/g' temp6.txt > temp7.txt
+
+#Making sure all @ separated from words
+sed -e 's/\([@]\)\([a-z]\)/\1\ \2/g' temp7.txt > temp8.txt
+sed -e 's/\([a-z]\)\([@]\)/\1\ \2/g' temp8.txt > temp9.txt
+
+#Finding all words and storing in a file
+egrep -o '[a-z@]+' temp9.txt > unig1.txt
+
+#using offset  create another file for creating bigrams
+tail -n+2 unig1.txt > unig2.txt
+
+#paste both files into same
+paste unig1.txt unig2.txt > pairs.txt
+
+#sort and calculate all frequencies in bigrams
+sort < pairs.txt | uniq -c | sort -n -r > bigrams.txt
+
+#sort and calculate all frequencies in unigram
+sort < unig1.txt | uniq -c | sort -n -r > unigrams.txt
+
+#making unigram and bigram space free
+sed -e 's/[ ]*\([0-9]\)/\1/g' unigrams.txt > unigramstemp.txt
+sed -e 's/[ ]*\([0-9]\)/\1/g' bigrams.txt > bigramstemp.txt
+
+#removing tab from bigram file
+tr "\t" " " < bigramstemp.txt > bigramstemp1.txt
+sed '$d' bigramstemp1.txt > bigramstemp2.txt
+
+#Creating unigram pl file
+sed -e 's/^/unigram(/g' -e 's/\([0-9]\) /\1,/g' -e 's/$/)./g' unigramstemp.txt > unigram_sunitapa.pl
+
+
+
+
+
+
+
+
+
